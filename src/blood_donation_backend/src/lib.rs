@@ -399,7 +399,7 @@ fn get_patient(id: u64) -> Result<Patient, Error> {
     }
 }
 
-// Query function to get all for sale patients
+// Query function to get all for incomplete donations patients
 #[ic_cdk::query]
 fn get_incomplete_donation_patients() -> Result<Vec<Patient>, Error> {
     // Retrieve all Patients from the storage
@@ -428,7 +428,7 @@ fn get_incomplete_donation_patients() -> Result<Vec<Patient>, Error> {
     // Check if any patients are found
     match return_patients.len() {
         0 => Err(Error::NotFound {
-            msg: format!("No patients up for sale could be found"),
+            msg: format!("No patients for donations could be found"),
         }),
         _ => Ok(return_patients),
     }
@@ -524,7 +524,7 @@ fn pledge_to_patient(payload: PledgePayload) -> Result<String, Error> {
             let donor = DONOR_STORAGE.with(|donors| donors.borrow().get(&payload.donor_id));
             match donor {
                 Some(donor) => {
-                    if donor.beneficiaries.len() + 1 > patient.needed_pints as usize {
+                    if patient.donations >= patient.needed_pints {
                         return Err(Error::InvalidPayload {
                             msg: format!(
                                 "Patient has already reached their needed donation target"
@@ -543,9 +543,12 @@ fn pledge_to_patient(payload: PledgePayload) -> Result<String, Error> {
                         Some(_) => {
                             // update patient
                             let mut new_patient_donors_ids = patient.donors_ids.clone();
+                            let is_complete = patient.needed_pints <= (patient.donations + payload.pints_pledge);
                             new_patient_donors_ids.push(donor.id);
                             let new_patient = Patient {
-                                donors_ids: new_patient_donors_ids,
+                                donors_ids: new_patient_donors_ids, 
+                                is_complete,
+                                donations: patient.donations + payload.pints_pledge,
                                 ..patient.clone()
                             };
                             // update patient in storage
@@ -573,6 +576,54 @@ fn pledge_to_patient(payload: PledgePayload) -> Result<String, Error> {
         }
         None => Err(Error::NotFound {
             msg: format!("patient of id: {} not found", payload.recipient_id),
+        }),
+    }
+}
+
+// add donor
+#[ic_cdk::update]
+fn add_donor(payload: DonorPayload) -> Result<Donor, Error> {
+    // validate payload
+    let validate_payload = payload.validate();
+    if validate_payload.is_err() {
+        return Err(Error::InvalidPayload {
+            msg: validate_payload.unwrap_err().to_string(),
+        });
+    }
+
+    let id = ID_COUNTER
+        .with(|counter| {
+            let current_id = *counter.borrow().get();
+            counter.borrow_mut().set(current_id + 1)
+        })
+        .expect("Cannot increment Ids");
+
+    let donor = Donor {
+        id,
+        name: payload.name.clone(),
+        blood_group: payload.blood_group,
+        password: payload.password,
+        beneficiaries: vec![],
+    };
+
+    match DONOR_STORAGE.with(|s| s.borrow_mut().insert(id, donor.clone())) {
+        None => Ok(donor),
+        Some(_) => Err(Error::InvalidPayload {
+            msg: format!("Could not add donor name: {}", payload.name),
+        }),
+    }
+}
+
+// get donor by ID
+#[ic_cdk::query]
+fn get_donor_by_id(id: u64) -> Result<Donor, Error> {
+    match DONOR_STORAGE.with(|donors| donors.borrow().get(&id)) {
+        Some(donor) => Ok(Donor {
+            password: "******".to_string(),
+            ..donor
+        }),
+        None => Err(Error::NotFound {
+            msg: format!("donor id:{} does not exist", id),
         }),
     }
 }

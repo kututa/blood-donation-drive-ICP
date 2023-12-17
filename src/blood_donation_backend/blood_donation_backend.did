@@ -1,0 +1,87 @@
+type Donor = record {
+  id : nat64;
+  password : text;
+  name : text;
+  blood_group : text;
+  beneficiaries : vec nat64;
+};
+type DonorPayload = record { password : text; name : text; blood_group : text };
+type EditHospitalPayload = record {
+  hospital_id : nat64;
+  password : text;
+  name : text;
+};
+type EditPatientPayload = record {
+  is_complete : bool;
+  patient_id : nat64;
+  password : text;
+  needed_pints : nat32;
+};
+type Error = variant {
+  InvalidPayload : record { msg : text };
+  NotFound : record { msg : text };
+  Unauthorized : record { msg : text };
+  AlreadyInit : record { msg : text };
+};
+type Hospital = record {
+  id : nat64;
+  donors_ids : vec nat64;
+  city : text;
+  password : text;
+  name : text;
+  address : text;
+  donations : nat32;
+};
+type HospitalPayload = record {
+  city : text;
+  password : text;
+  name : text;
+  address : text;
+};
+type Patient = record {
+  id : nat64;
+  hospital : text;
+  is_complete : bool;
+  donors_ids : vec nat64;
+  password : text;
+  name : text;
+  description : text;
+  blood_group : text;
+  needed_pints : nat32;
+  donations : nat32;
+};
+type PatientPayload = record {
+  hospital : text;
+  password : text;
+  name : text;
+  description : text;
+  blood_group : text;
+  needed_pints : nat32;
+};
+type PledgePayload = record {
+  recipient_id : nat64;
+  pints_pledge : nat32;
+  password : text;
+  donor_id : nat64;
+};
+type Result = variant { Ok : Donor; Err : Error };
+type Result_1 = variant { Ok : Hospital; Err : Error };
+type Result_2 = variant { Ok : Patient; Err : Error };
+type Result_3 = variant { Ok : vec Hospital; Err : Error };
+type Result_4 = variant { Ok : vec Patient; Err : Error };
+type Result_5 = variant { Ok : text; Err : Error };
+service : {
+  add_donor : (DonorPayload) -> (Result);
+  add_hospital : (HospitalPayload) -> (Result_1);
+  add_patient : (PatientPayload) -> (Result_2);
+  edit_hospital : (EditHospitalPayload) -> (Result_1);
+  edit_patient : (EditPatientPayload) -> (Result_2);
+  get_all_hospitals : () -> (Result_3) query;
+  get_donor_by_id : (nat64) -> (Result) query;
+  get_hospital_by_city_and_name : (text) -> (Result_3) query;
+  get_hospital_by_id : (nat64) -> (Result_1) query;
+  get_incomplete_donation_patients : () -> (Result_4) query;
+  get_patient : (nat64) -> (Result_2) query;
+  pledge_to_hospital : (PledgePayload) -> (Result_5);
+  pledge_to_patient : (PledgePayload) -> (Result_5);
+}
