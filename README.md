@@ -1,109 +1,109 @@
-# Recipe Marketplace
+# Blood Donation drive
 
-## Overview
+This is a rust smart contract that facilitates the management of a blood donation drive, allowing hospitals, patients, and donors to participate. It provides functions for adding entities, querying information, and handling pledges. The code incorporates validation and clear error messages to ensure the integrity of the data and the security of the smart contract.
 
-This Rust Smart contract implements a recipe marketplace on the Internet Computer, allowing users to create, edit, and trade recipes. It leverages the Internet Computer's smart contract capabilities to manage user accounts, recipe storage, and transactions. The primary use case involves creating, sharing, and trading recipes within a decentralized marketplace. Users can contribute to community recipes, purchase non-community recipes, and manage their balances.
+## installation
 
-## Prerequisites
-
-- Rust programming language (version X.X.X)
-- DFINITY Canister SDK
-- Internet Computer access
-
-## Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/Mhezron/recipe-nft-marketplace.git
-   cd recipe-nft-marketplace
-
-## Memory Management
-
-Memory is allocated using a `MemoryManager` from the `ic-stable-structures` crate:
-
-```rust
-static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> = // initialized
+```bash
+git clone https://github.com/kututa/blood-donation-drive-ICP.git
+cd blood-donation-drive-ICP
+npm install
+dfx start --background --clean
+npm run gen-deploy
 ```
 
-This manages allocating `VirtualMemory` for storages.
+## Structure
 
-## ID Generation
+### Struct Definitions
 
-Unique IDs are generated using a thread-local `IdCell`:
+1. **Patient:**
+   - Represents a patient with attributes such as ID, name, blood group, hospital, description, needed pints, donations, password, and completion status.
 
-```rust
-static ID_COUNTER: RefCell<IdCell> = // initialized
-```
+2. **Hospital:**
+   - Represents a hospital with attributes including ID, name, address, password, city, donations, and donor IDs.
 
-The counter is incremented when adding new records.
+3. **Donor:**
+   - Represents a donor with attributes like ID, name, password, blood group, and beneficiaries (IDs of patients they pledged to).
 
-## Record Storage
+### Storable and BoundedStorable Implementations
 
-Records are stored in thread-local `StableBTreeMap`s:
+- Implements the `Storable` and `BoundedStorable` traits for the `Patient`, `Hospital`, and `Donor` structs, enabling serialization and deserialization.
 
-The system utilizes thread-local static variables for memory management and storage. These include:
+### Memory Management and Storage
 
-- **MEMORY_MANAGER**: Manages virtual memory.
-- **ID_COUNTER**: Manages unique IDs.
-- **USER_STORAGE**: Stores clients.
-
-```rust
-static CLIENT_STORAGE: RefCell<StableBTreeMap<u64, User>> = // initialized
-```
-
-## Traits
-
-The `Storable` and `BoundedStorable` traits are implemented for serialization and bounding record sizes during storage.
-
-### Main Structs
-
-- **User:** Represents a user in the marketplace with details such as name, email, balance, and recipes.
-- **Recipe:** Defines a recipe with attributes like title, description, category, and price.
+- Utilizes a thread-local static variable for a `MemoryManager` and `IdCell` for managing memory and generating unique IDs.
+- Uses `StableBTreeMap` for storing patients, hospitals, and donors in stable memory.
 
 ### Payload Structs
 
-- **RecipePayload:** Used for adding and editing recipes.
-- **UserPayload:** Payload for adding new users.
-- **ReviewPayload:** Payload for adding recipe reviews.
-- **InitPayload:** Initial payload for contract initialization.
-- **EditRecipePayload:** Payload for editing owned recipes.
-- **EditCommunityRecipe:** Payload for editing community recipes.
-- **ReturnUser:** Struct for returning user information.
-- **BuyNftPayload:** Payload for buying a non-community recipe.
+1. **HospitalPayload:**
+   - Payload structure for adding a new hospital.
 
-### Core Functions
+2. **PatientPayload:**
+   - Payload structure for adding a new patient.
 
-#### Query Functions
+3. **EditPatientPayload:**
+   - Payload structure for editing patient attributes.
 
-1. `get_all_recipes:` Retrieve all recipes from the marketplace.
-2. `get_all_for_sale_recipes:` Retrieve recipes available for sale.
-3. `get_recipe_by_category:` Retrieve recipes by category or title.
-4. `get_recipe_by_id:` Retrieve a specific recipe by its unique ID.
-5. `get_user:` Retrieve user information by ID.
+4. **DonorPayload:**
+   - Payload structure for adding a new donor.
 
-#### Update Functions
+5. **EditHospitalPayload:**
+   - Payload structure for editing hospital attributes.
 
-1. `add_recipe:` Add a new recipe to the marketplace.
-2. `edit_owned_recipe:` Edit owned recipes (title, is_community, price, description).
-3. `edit_community_recipe:` Edit community recipes (description only).
-4. `buy_blood_donation:` Buy a non-community recipe.
-5. `transfer_recipe_to_user:` Transfer ownership of a recipe to a new user.
-6. `add_user:` Add a new user to the marketplace.
+6. **PledgePayload:**
+   - Payload structure for a donor pledging to a hospital or patient.
+
+### Query Functions
+
+1. **get_all_hospitals:**
+   - Retrieves all hospitals.
+
+2. **get_hospital_by_city_and_name:**
+   - Retrieves hospitals by city or name.
+
+3. **get_hospital_by_id:**
+   - Retrieves a hospital by ID.
+
+4. **get_patient:**
+   - Retrieves a patient by ID.
+
+5. **get_incomplete_donation_patients:**
+   - Retrieves incomplete donation patients.
+
+### Update Functions
+
+1. **add_hospital:**
+   - Adds a new hospital.
+
+2. **edit_hospital:**
+   - Edits hospital attributes.
+
+3. **pledge_to_hospital:**
+   - Handles a donor pledging to a hospital.
+
+4. **add_patient:**
+   - Adds a new patient.
+
+5. **edit_patient:**
+   - Edits patient attributes.
+
+6. **pledge_to_patient:**
+   - Handles a donor pledging to a patient.
 
 ### Error Handling
 
-- **Error:** Enum for handling various error scenarios, including not found, already paid, invalid payload, and unauthorized access.
+- Defines an `Error` enum for handling various error scenarios like not found, already initialized, invalid payload, and unauthorized access.
 
 ### Candid Interface
 
-- Exported Candid interface for seamless interaction with the Internet Computer.
-
+- Exports the Candid interface for seamless interaction with the Internet Computer.
+  
 ## More
 
 To get started, you might want to explore the project directory structure and the default configuration file. Working with this project in your development environment will not affect any production deployment or identity tokens.
 
-To learn more before you start working with blood_donation, see the following documentation available online:
+To learn more before you start working with recipe_nft, see the following documentation available online:
 
 - [Quick Start](https://internetcomputer.org/docs/quickstart/quickstart-intro)
 - [SDK Developer Tools](https://internetcomputer.org/docs/developers-guide/sdk-guide)
@@ -116,7 +116,7 @@ To learn more before you start working with blood_donation, see the following do
 If you want to start working on your project right away, you might want to try the following commands:
 
 ```bash
-cd blood_donation/
+cd recipe_nft/
 dfx help
 dfx canister --help
 ```
