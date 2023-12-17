@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "src/blood_donation_backend",
+]
+resolver = "2"

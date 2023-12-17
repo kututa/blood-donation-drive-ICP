@@ -1,0 +1,28 @@
+{
+  "canisters": {
+    "blood_donation_backend": {
+      "candid": "src/blood_donation_backend/blood_donation_backend.did",
+      "package": "blood_donation_backend",
+      "type": "rust"
+    },
+    "blood_donation_frontend": {
+      "dependencies": ["blood_donation_backend"],
+      "frontend": {
+        "entrypoint": "src/blood_donation_frontend/src/index.html"
+      },
+      "source": [
+        "src/blood_donation_frontend/assets",
+        "dist/blood_donation_frontend/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
